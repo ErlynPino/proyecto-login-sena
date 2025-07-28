@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { UsersService } from './services/users.service';
+import { User, UserSchema } from './schemas/user.schema';
 
 /**
  * Módulo de autenticación
@@ -10,6 +12,8 @@ import { UsersService } from './services/users.service';
  */
 @Module({
   imports: [
+    // Registro del esquema de usuario para MongoDB
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     // Configuración del módulo JWT para manejo de tokens
     JwtModule.register({
       secret: 'clave-secreta-sena-2024', // Clave secreta para firmar tokens (en producción usar variable de entorno)

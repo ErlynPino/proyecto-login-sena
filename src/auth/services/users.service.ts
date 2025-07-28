@@ -1,17 +1,21 @@
 import { Injectable, ConflictException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../interfaces/user.interface';
+import { User } from '../schemas/user.schema';
 
 /**
  * Servicio para la gestión de usuarios
- * Maneja el almacenamiento y consulta de usuarios en memoria
+ * Maneja el almacenamiento y consulta de usuarios en MongoDB
  */
 @Injectable()
 export class UsersService {
-  // Base de datos simulada en memoria para almacenar usuarios
-  private readonly users: User[] = [];
-  private nextId = 1; // Contador para generar IDs únicos
-  private readonly startTime = new Date(); // Tiempo de inicio del servicio
+  // Tiempo de inicio del servicio
+  private readonly startTime = new Date();
+
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+  ) {}
 
   /**
    * Busca un usuario por su nombre de usuario
@@ -19,7 +23,7 @@ export class UsersService {
    * @returns Usuario encontrado o undefined si no existe
    */
   async findByUsername(usuario: string): Promise<User | undefined> {
-    return this.users.find(user => user.usuario === usuario);
+    return this.userModel.findOne({ usuario }).exec();
   }
 
   /**
@@ -29,7 +33,7 @@ export class UsersService {
    * @returns Usuario creado sin la contraseña
    * @throws ConflictException si el usuario ya existe
    */
-  async createUser(usuario: string, contrasena: string): Promise<Omit<User, 'contrasena'>> {
+  async createUser(usuario: string, contrasena: string): Promise<any> {
     // Verificar si el usuario ya existe
     const existingUser = await this.findByUsername(usuario);
     if (existingUser) {
@@ -40,20 +44,20 @@ export class UsersService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(contrasena, saltRounds);
 
-    // Crear el nuevo usuario
-    const newUser: User = {
-      id: this.nextId++,
+    // Crear el nuevo usuario en MongoDB
+    const newUser = new this.userModel({
       usuario,
       contrasena: hashedPassword,
       fechaCreacion: new Date(),
-    };
+    });
 
-    // Guardar el usuario en la base de datos simulada
-    this.users.push(newUser);
+    // Guardar en la base de datos
+    await newUser.save();
 
     // Retornar el usuario sin la contraseña por seguridad
-    const { contrasena: _, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
+    const result = newUser.toObject();
+    delete result.contrasena;
+    return result;
   }
 
   /**
@@ -62,7 +66,7 @@ export class UsersService {
    * @param contrasena - Contraseña en texto plano
    * @returns Usuario sin contraseña si las credenciales son válidas, null si no
    */
-  async validateUser(usuario: string, contrasena: string): Promise<Omit<User, 'contrasena'> | null> {
+  async validateUser(usuario: string, contrasena: string): Promise<any | null> {
     // Buscar el usuario en la base de datos
     const user = await this.findByUsername(usuario);
     if (!user) {
@@ -76,20 +80,26 @@ export class UsersService {
     }
 
     // Retornar el usuario sin la contraseña por seguridad
-    const { contrasena: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const result = user.toObject();
+    delete result.contrasena;
+    return result;
   }
 
   /**
    * Obtiene todos los usuarios registrados (sin contraseñas)
    * @returns Lista de usuarios sin contraseñas
    */
-  async getAllUsers(): Promise<Omit<User, 'contrasena'>[]> {
-    return this.users.map(({ contrasena, ...user }) => user);
+  async getAllUsers(): Promise<any[]> {
+    const users = await this.userModel.find().exec();
+    return users.map(user => {
+      const result = user.toObject();
+      delete result.contrasena;
+      return result;
+    });
   }
 
   /**
-   * Valida el estado de la conexión con la base de datos simulada
+   * Valida el estado de la conexión con la base de datos
    * @returns Estado de la conexión y estadísticas del sistema
    */
   async validateDatabaseConnection(): Promise<{
@@ -101,29 +111,28 @@ export class UsersService {
     memoryUsage: string;
   }> {
     try {
-      // Simular una verificación de conexión a base de datos
-      const isConnected = this.users !== undefined && Array.isArray(this.users);
+      // Verificación real de conexión a la base de datos
+      await this.userModel.db.collection('users').stats();
+      
+      // Obtener el número total de usuarios
+      const totalUsers = await this.userModel.countDocuments();
+      
+      // Obtener el último usuario creado
+      const lastUser = await this.userModel.findOne().sort({ fechaCreacion: -1 }).exec();
       
       // Calcular tiempo de actividad del servicio
       const uptime = this.calculateUptime();
       
-      // Obtener el último usuario creado
-      const lastUser = this.users.length > 0 
-        ? this.users[this.users.length - 1] 
-        : null;
-
-      // Calcular uso de memoria aproximado
-      const memoryUsage = this.calculateMemoryUsage();
-
       return {
-        status: isConnected ? 'CONECTADO' : 'DESCONECTADO',
-        connected: isConnected,
-        totalUsers: this.users.length,
+        status: 'CONECTADO',
+        connected: true,
+        totalUsers,
         uptime,
         lastUserCreated: lastUser?.fechaCreacion,
-        memoryUsage,
+        memoryUsage: this.calculateMemoryUsage(),
       };
     } catch (error) {
+      console.error('Error validando conexión a la base de datos:', error);
       return {
         status: 'ERROR',
         connected: false,
@@ -158,9 +167,9 @@ export class UsersService {
    * @returns Uso de memoria en formato legible
    */
   private calculateMemoryUsage(): string {
-    const userDataSize = JSON.stringify(this.users).length;
-    const sizeInKB = (userDataSize / 1024).toFixed(2);
-    return `${sizeInKB} KB`;
+    const memoryUsage = process.memoryUsage();
+    const heapUsed = (memoryUsage.heapUsed / 1024 / 1024).toFixed(2);
+    return `${heapUsed} MB`;
   }
 
   /**
@@ -176,15 +185,17 @@ export class UsersService {
     memoryFootprint: string;
   }> {
     const dbStatus = await this.validateDatabaseConnection();
+    
+    // Obtener usuarios registrados hoy
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const usersToday = this.users.filter(user => 
-      user.fechaCreacion >= today
-    ).length;
+    const usersToday = await this.userModel.countDocuments({
+      fechaCreacion: { $gte: today }
+    });
 
     return {
-      totalUsers: this.users.length,
+      totalUsers: dbStatus.totalUsers,
       serviceUptime: dbStatus.uptime,
       databaseStatus: dbStatus.status,
       lastActivity: dbStatus.lastUserCreated || null,
@@ -206,18 +217,24 @@ export class UsersService {
     const startTime = Date.now();
     
     try {
-      // Prueba de lectura
-      const canRead = this.users.length >= 0;
+      // Prueba de lectura real en la base de datos
+      await this.userModel.findOne().exec();
       
-      // Prueba de escritura (simulada)
-      const testArray = [...this.users];
-      const canWrite = testArray.push && testArray.pop ? true : false;
+      // Prueba de escritura (con inserción y eliminación temporal)
+      const testUser = new this.userModel({
+        usuario: `test_${Date.now()}`,
+        contrasena: 'test_password',
+        fechaCreacion: new Date()
+      });
+      
+      await testUser.save();
+      await this.userModel.deleteOne({ _id: testUser._id });
       
       const responseTime = Date.now() - startTime;
 
       return {
-        canRead,
-        canWrite,
+        canRead: true,
+        canWrite: true,
         responseTime,
       };
     } catch (error) {
