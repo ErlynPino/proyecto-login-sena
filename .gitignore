@@ -28,3 +28,11 @@ logs/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Base de datos
+*.db
+data/
+mongo-data/
+
+# Configuración específica
+config/local.js

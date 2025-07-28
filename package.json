@@ -1,35 +1,39 @@
 {
   "name": "proyecto-login-sena",
   "version": "1.0.0",
-  "description": "Servicio web para registro e inicio de sesión - SENA",
+  "description": "Sistema de login para SENA",
   "main": "dist/main.js",
   "scripts": {
     "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main"
   },
   "dependencies": {
-    "@nestjs/common": "^10.0.0",
-    "@nestjs/core": "^10.0.0",
-    "@nestjs/platform-express": "^10.0.0",
-    "@nestjs/jwt": "^10.1.1",
-    "@nestjs/passport": "^10.0.1",
-    "passport": "^0.6.0",
-    "passport-jwt": "^4.0.1",
+    "@nestjs/common": "^11.1.5",
+    "@nestjs/core": "^11.1.5",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/mongoose": "^10.0.2",
+    "@nestjs/platform-express": "^11.1.5",
     "bcryptjs": "^2.4.3",
-    "class-validator": "^0.14.0",
     "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
-    "@types/node": "^20.3.1",
     "@types/bcryptjs": "^2.4.2",
+    "@types/node": "^20.3.1",
     "@types/passport-jwt": "^3.0.9",
+    "nodemon": "^3.0.1",
     "typescript": "^5.1.3"
   }
 }

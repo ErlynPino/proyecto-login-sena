@@ -13,7 +13,7 @@ cd "c:\Users\pino2\OneDrive\Escritorio\proyecto login sena"
 npm install
 npm run start:dev
 ```
-- Verifica que veas: "🚀 Servidor iniciado en http://localhost:3000"
+- Verifica que veas: "🚀 Servidor iniciado en http://localhost:3001"
 
 ## 🎯 Configuración en Postman
 
@@ -29,7 +29,7 @@ npm run start:dev
 2. Clic en "Create Environment"
 3. Nombre: "SENA Local"
 4. Agregar variables:
-   - Variable: `baseUrl` | Valor: `http://localhost:3000`
+   - Variable: `baseUrl` | Valor: `http://localhost:3001`
    - Variable: `token` | Valor: (dejar vacío)
 
 ## 🧪 Pruebas Paso a Paso
@@ -225,8 +225,8 @@ Crear carpetas dentro de la colección:
 - **Solución**: Ejecutar `npm run start:dev`
 
 ### Error: "Connection refused"
-- **Causa**: Puerto 3000 ocupado
-- **Solución**: Cambiar puerto en main.ts o liberar puerto 3000
+- **Causa**: Puerto 3001 ocupado
+- **Solución**: Cambiar puerto en main.ts o liberar puerto 3001
 
 ### Error: 404 Not Found
 - **Causa**: URL incorrecta

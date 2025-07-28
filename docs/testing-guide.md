@@ -11,7 +11,7 @@
 
 ### 1. Verificar que el servicio está activo
 ```http
-GET http://localhost:3000/auth/ping
+GET http://localhost:3001/auth/ping
 ```
 
 **Respuesta esperada:**
@@ -26,7 +26,7 @@ GET http://localhost:3000/auth/ping
 
 ### 2. Estado general del sistema
 ```http
-GET http://localhost:3000/auth/status
+GET http://localhost:3001/auth/status
 ```
 
 **Respuesta esperada:**
@@ -42,7 +42,7 @@ GET http://localhost:3000/auth/status
 
 ### 1. Estado de la conexión a base de datos
 ```http
-GET http://localhost:3000/auth/database/status
+GET http://localhost:3001/auth/database/status
 ```
 
 **Respuesta esperada:**
@@ -63,7 +63,7 @@ GET http://localhost:3000/auth/database/status
 
 ### 2. Chequeo de salud completo
 ```http
-GET http://localhost:3000/auth/health
+GET http://localhost:3001/auth/health
 ```
 
 **Respuesta esperada:**
@@ -98,7 +98,7 @@ GET http://localhost:3000/auth/health
 
 ### 3. Estadísticas del sistema
 ```http
-GET http://localhost:3000/auth/stats
+GET http://localhost:3001/auth/stats
 ```
 
 ## 📮 Pruebas con Postman
@@ -116,7 +116,7 @@ GET http://localhost:3000/auth/stats
 4. Hacer clic en "Run SENA Auth Service"
 
 ### Variables de entorno
-- `baseUrl`: http://localhost:3000
+- `baseUrl`: http://localhost:3001
 - `authToken`: Se llena automáticamente después del login
 
 ## 🧪 Pruebas Manuales
@@ -241,21 +241,21 @@ Debe retornar lista de usuarios sin contraseñas.
 
 ```bash
 # Ping
-curl -X GET http://localhost:3000/auth/ping
+curl -X GET http://localhost:3001/auth/ping
 
 # Estado de base de datos
-curl -X GET http://localhost:3000/auth/database/status
+curl -X GET http://localhost:3001/auth/database/status
 
 # Health check
-curl -X GET http://localhost:3000/auth/health
+curl -X GET http://localhost:3001/auth/health
 
 # Registro
-curl -X POST http://localhost:3000/auth/register \
+curl -X POST http://localhost:3001/auth/register \
   -H "Content-Type: application/json" \
   -d '{"usuario":"testuser","contrasena":"password123"}'
 
 # Login
-curl -X POST http://localhost:3000/auth/login \
+curl -X POST http://localhost:3001/auth/login \
   -H "Content-Type: application/json" \
   -d '{"usuario":"testuser","contrasena":"password123"}'
 ```
