@@ -10,8 +10,8 @@ import { AppService } from './app.service';
  */
 @Module({
   imports: [
-    // Conexión a la base de datos MongoDB
-    MongooseModule.forRoot('mongodb://localhost:27017/solistica'),
+    // Conexión a la nueva base de datos MongoDB específica para el sistema de autenticación
+    MongooseModule.forRoot('mongodb://localhost:27017/authsenadb'),
     AuthModule, // Módulo de autenticación y registro
   ],
   controllers: [AppController],
