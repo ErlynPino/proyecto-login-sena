@@ -10,57 +10,57 @@ import { LoginDto } from '../dto/login.dto';
  */
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly usersService: UsersService, // Servicio de gestión de usuarios
-    private readonly jwtService: JwtService,     // Servicio para manejo de JWT
-  ) {}
+    constructor(
+        private readonly usersService: UsersService, // Servicio de gestión de usuarios
+        private readonly jwtService: JwtService,     // Servicio para manejo de JWT
+    ) { }
 
-  /**
-   * Registra un nuevo usuario en el sistema
-   * @param registerDto - Datos de registro del usuario
-   * @returns Mensaje de éxito y datos del usuario creado
-   */
-  async register(registerDto: RegisterDto) {
-    const { usuario, contrasena } = registerDto;
+    /**
+     * Registra un nuevo usuario en el sistema
+     * @param registerDto - Datos de registro del usuario
+     * @returns Mensaje de éxito y datos del usuario creado
+     */
+    async register(registerDto: RegisterDto) {
+        const { usuario, contrasena } = registerDto;
 
-    // Crear el usuario usando el servicio de usuarios
-    const newUser = await this.usersService.createUser(usuario, contrasena);
+        // Crear el usuario usando el servicio de usuarios
+        const newUser = await this.usersService.createUser(usuario, contrasena);
 
-    return {
-      mensaje: 'Usuario registrado exitosamente',
-      usuario: newUser,
-    };
-  }
-
-  /**
-   * Autentica un usuario y genera un token de acceso
-   * @param loginDto - Credenciales de inicio de sesión
-   * @returns Token de acceso y mensaje de éxito
-   * @throws UnauthorizedException si las credenciales son inválidas
-   */
-  async login(loginDto: LoginDto) {
-    const { usuario, contrasena } = loginDto;
-
-    // Validar las credenciales del usuario
-    const validatedUser = await this.usersService.validateUser(usuario, contrasena);
-    
-    if (!validatedUser) {
-      throw new UnauthorizedException('Error en la autenticación. Usuario o contraseña incorrectos');
+        return {
+            mensaje: 'Usuario registrado exitosamente',
+            usuario: newUser,
+        };
     }
 
-    // Crear el payload para el token JWT
-    const payload = { 
-      sub: validatedUser.id,      // ID del usuario
-      username: validatedUser.usuario, // Nombre de usuario
-    };
+    /**
+     * Autentica un usuario y genera un token de acceso
+     * @param loginDto - Credenciales de inicio de sesión
+     * @returns Token de acceso y mensaje de éxito
+     * @throws UnauthorizedException si las credenciales son inválidas
+     */
+    async login(loginDto: LoginDto) {
+        const { usuario, contrasena } = loginDto;
 
-    // Generar el token de acceso
-    const accessToken = this.jwtService.sign(payload);
+        // Validar las credenciales del usuario
+        const validatedUser = await this.usersService.validateUser(usuario, contrasena);
 
-    return {
-      mensaje: 'Autenticación satisfactoria',
-      usuario: validatedUser,
-      access_token: accessToken,
-    };
-  }
+        if (!validatedUser) {
+            throw new UnauthorizedException('Error en la autenticación. Usuario o contraseña incorrectos');
+        }
+
+        // Crear el payload para el token JWT
+        const payload = {
+            sub: validatedUser.id,      // ID del usuario
+            username: validatedUser.usuario, // Nombre de usuario
+        };
+
+        // Generar el token de acceso
+        const accessToken = this.jwtService.sign(payload);
+
+        return {
+            mensaje: 'Autenticación satisfactoria',
+            usuario: validatedUser,
+            access_token: accessToken,
+        };
+    }
 }
